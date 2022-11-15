@@ -102,11 +102,11 @@ with DAG(
 
     )
 
-    get_data=PythonOperator(task_id='READ_DATA_FROM_LAND_TABLE',python_callable=retrieve_data,provide_context=True)
+    Read_Data=PythonOperator(task_id='READ_DATA_FROM_LAND_TABLE',python_callable=retrieve_data,provide_context=True)
 
-    transform_data=PythonOperator(task_id='TRANSFORM_DATA',python_callable=transform)                        
+    Transform_Data=PythonOperator(task_id='TRANSFORM_DATA',python_callable=transform)                        
 
-    Start>>Create_Table>>Load_Date>>get_data>>transform_data>>End
+    Start>>Create_Table>>Load_Date>>Read_Data>>Transform_Data>>End
 
 
 
