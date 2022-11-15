@@ -27,7 +27,7 @@ PreRequisite
 2. Postgres and PGadmin installed in your local system
 3. Astro installed in your system.
 4. Docker Desktop installed in your system
-5. Airflow installed in your system (You can installed airflow with this command (```pip install apache-airflow```))
+5. Airflow installed in your system (You can installed airflow with this command (```pip install apache-airflow```)
 
 
 Deploy Your Project Locally
@@ -48,13 +48,3 @@ Note: Running 'astro dev start' will start your project with the Airflow Webserv
 3. Access the Airflow UI for your local Airflow project. To do so, go to http://localhost:8080/ and log in with 'admin' for both your Username and Password.
 
 You should also be able to access your Postgres Database at 'localhost:5432/postgres'.
-
-Deploy Your Project to Astronomer
-=================================
-
-If you have an Astronomer account, pushing code to a Deployment on Astronomer is simple. For deploying instructions, refer to Astronomer documentation: https://docs.astronomer.io/cloud/deploy-code/
-
-Contact
-=======
-
-The Astronomer CLI is maintained with love by the Astronomer team. To report a bug or suggest a change, reach out to our support team: https://support.astronomer.io/
