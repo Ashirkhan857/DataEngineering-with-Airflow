@@ -10,8 +10,11 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 PODCAST_URL = "https://www.marketplace.org/feed/podcast/marketplace/"
 LANDING_DATABASE='land.podcast_data'
+STAGING_DATABASE='stage.podcast_data'
 POSTGRES_CONN_ID='postgres_default'
 SEARCH_='https'
+dag_id = "podcast_summary"
+task_id = "transform_data"
 def get_episode():
             data=requests.get(PODCAST_URL)
             feed=xmltodict.parse(data.text)
@@ -22,33 +25,33 @@ def clean_data(raw_data):
     clean_=str(raw_data).replace('[(','').replace(', )]','').replace("'",'').replace(',)]','')  
     return clean_
 
+
+
 def retrieve_data(**context):
     PG_Hook=PostgresHook(postgres_conn_id=POSTGRES_CONN_ID)
     Hook=PG_Hook.get_conn()
     cursor = Hook.cursor()
     cursor.execute(f'''select podcast_data from {LANDING_DATABASE}''')
     response_=cursor.fetchall()
-    response_=str(response_).replace('[(','').replace(', )]','').replace("'",'').replace(',)]','')  
-    context['task_instance'].xcom_push(key='response_', value=response_)
+    clean_response=clean_data(response_) 
+    context['task_instance'].xcom_push(key='response_', value=clean_response)
     return response_
 
 
 def transform(**context):
     data=context['task_instance'].xcom_pull(task_ids='get_data',key='response_')
     date = str(context["execution_date"])
-    dag_id = "podcast_summary"
-    task_id = "transform_data"
+
     episodes=str(data).replace('null','"None"').replace('style="text-align: left"','style=text-align: left')
     eval_episodes=eval(episodes)
     PG_Hook=PostgresHook(postgres_conn_id=POSTGRES_CONN_ID)
     new_episode=[]
     for epi_ in eval_episodes:
-        if SEARCH_ in epi_['SEARCH_']:
-            filename=epi_['SEARCH_'].split('/')[-1]+'.mp3'
+        if SEARCH_ in epi_['link']:
+            filename=epi_['link'].split('/')[-1]+'.mp3'
             print('filename',filename)
-            new_episode.append([epi_["SEARCH_"],epi_["title"],epi_["pubDate"],epi_["description"],filename,date,dag_id,task_id])
-    PG_Hook.insert_rows(table="stage.podcast_data",rows=new_episode,target_fields=["SEARCH_","title","pubDate","description","filename","execution_date","dag_id","task_id",])
-    print('!!!!!!!!!!!!!!!!Done Hurra!!!!!!!!!!!!')
+            new_episode.append([epi_["link"],epi_["title"],epi_["pubDate"],epi_["description"],filename,date,dag_id,task_id])
+    PG_Hook.insert_rows(table=STAGING_DATABASE,rows=new_episode,target_fields=["link","title","pubDate","description","filename","execution_date","dag_id","task_id",])
 
 
 with DAG(
@@ -75,7 +78,7 @@ with DAG(
                 CREATE TABLE IF NOT EXISTS stage.podcast_data(
                 id SERIAL PRIMARY KEY,
                 api_transform TEXT,
-                SEARCH_ TEXT,
+                link TEXT,
                 title TEXT,
                 pubDate TEXT,
                 description TEXT,
@@ -91,10 +94,10 @@ with DAG(
             task_id="Load_Data",
             sql="""
                 TRUNCATE TABLE land.podcast_data;
-                INSERT INTO land.podcast_data (podcast_data,created_at)
-                VALUES (%(data_)s,%(date)s);
+                INSERT INTO land.podcast_data (podcast_data,created_at,dag_id,task_id)
+                VALUES (%(data_)s,%(date)s,%(dag_id)s,%(task_id)s);
                 """,
-                parameters={'data_':str(data),'date':str(datetime.now())}
+                parameters={'data_':str(data),'date':str(datetime.now()),'dag_id':dag_id ,'task_id':task_id}
 
     )
 
