@@ -1,20 +1,34 @@
 Overview
 ========
+## What is Data Engineering?
 
-Welcome to Astronomer! This project was generated after you ran 'astro dev init' using the Astronomer CLI. This readme describes the contents of the project, as well as how to run Apache Airflow on your local machine.
+Data engineering is the process of designing and building systems that let people collect and analyze raw data from multiple sources and formats. These systems empower people to find practical applications of the data, which businesses can use to thrive.
+
+## What is Airflow?
+
+Apache Airflow is an open-source platform for authoring, scheduling and monitoring data and computing workflows. First developed by Airbnb, it is now under the Apache Software Foundation. Airflow uses Python to create workflows that can be easily scheduled and monitored. Airflow can run anything—it is completely agnostic to what you are running.
 
 Project Contents
 ================
 
-Your Astro project contains the following files and folders:
+Project contains the following files and folders:
 
-- dags: This folder contains the Python files for your Airflow DAGs. By default, this directory includes an example DAG that runs every 30 minutes and simply prints the current date. It also includes an empty 'my_custom_function' that you can fill out to execute Python code.
+- dags: This folder contains the Python files for your Airflow DAGs.
 - Dockerfile: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience. If you want to execute other commands or overrides at runtime, specify them here.
 - include: This folder contains any additional files that you want to include as part of your project. It is empty by default.
 - packages.txt: Install OS-level packages needed for your project by adding them to this file. It is empty by default.
 - requirements.txt: Install Python packages needed for your project by adding them to this file. It is empty by default.
 - plugins: Add custom or community plugins for your project to this file. It is empty by default.
 - airflow_settings.yaml: Use this local-only file to specify Airflow Connections, Variables, and Pools instead of entering them in the Airflow UI as you develop DAGs in this project.
+
+PreRequisite
+===========================
+1. Make sure python installed in your local system.
+2. Postgres and PGadmin installed in your local system
+3. Astro installed in your system.
+4. Docker Desktop installed in your system
+5. Airflow installed in your system (You can installed airflow with this command (```pip install apache-airflow```))
+
 
 Deploy Your Project Locally
 ===========================
