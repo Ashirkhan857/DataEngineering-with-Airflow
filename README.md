@@ -1,2 +1,2 @@
 # DataEngineering-with-Airflow
-Build ETL (extract transform load) with airflow and postgres
+Build ETL (extract transform load) pipeline with airflow and postgres
