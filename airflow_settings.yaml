@@ -9,10 +9,10 @@ airflow:
   connections:
     - conn_id: postgres_default
       conn_type: postgres
-      conn_host: host.docker.internal
+      conn_host: host.docker.internal   #CONNECT WITH PGADMIN LOCALLY
       conn_schema: postgres
       conn_login: postgres
-      conn_password: 12345
+      conn_password: 12345             #CONNECTION PASSWORD
       conn_port: 5432
       conn_extra:
   pools:

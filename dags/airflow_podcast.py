@@ -13,8 +13,10 @@ LANDING_DATABASE='land.podcast_data'
 STAGING_DATABASE='stage.podcast_data'
 POSTGRES_CONN_ID='postgres_default'
 SEARCH_='https'
-dag_id = "podcast_summary"
-task_id = "transform_data"
+DAG_ID = "PODCAST_SUMMARY"
+LANDING_TASK_ID='LOAD_DATA'
+TRANSFORM_TASK_ID='TRANSFORM_DATA'
+
 def get_episode():
             data=requests.get(PODCAST_URL)
             feed=xmltodict.parse(data.text)
@@ -39,9 +41,9 @@ def retrieve_data(**context):
 
 
 def transform(**context):
-    data=context['task_instance'].xcom_pull(task_ids='get_data',key='response_')
+    data=context['task_instance'].xcom_pull(task_ids='READ_DATA_FROM_LAND_TABLE',key='response_')
     date = str(context["execution_date"])
-
+    task_id = "transform_data"
     episodes=str(data).replace('null','"None"').replace('style="text-align: left"','style=text-align: left')
     eval_episodes=eval(episodes)
     PG_Hook=PostgresHook(postgres_conn_id=POSTGRES_CONN_ID)
@@ -50,7 +52,7 @@ def transform(**context):
         if SEARCH_ in epi_['link']:
             filename=epi_['link'].split('/')[-1]+'.mp3'
             print('filename',filename)
-            new_episode.append([epi_["link"],epi_["title"],epi_["pubDate"],epi_["description"],filename,date,dag_id,task_id])
+            new_episode.append([epi_["link"],epi_["title"],epi_["pubDate"],epi_["description"],filename,date,DAG_ID,task_id])
     PG_Hook.insert_rows(table=STAGING_DATABASE,rows=new_episode,target_fields=["link","title","pubDate","description","filename","execution_date","dag_id","task_id",])
 
 
@@ -62,11 +64,11 @@ with DAG(
     ) as dag:
 
 
-    Start=EmptyOperator(task_id='Start')
-    End=EmptyOperator(task_id='End')
+    Start=EmptyOperator(task_id='START')
+    End=EmptyOperator(task_id='END')
 
     Create_Table=PostgresOperator(
-            task_id="Create_Table",
+            task_id="CREATE_TABLE",
             sql="""
                 CREATE SCHEMA IF NOT EXISTS land;
                 CREATE SCHEMA IF NOT EXISTS Stage;
@@ -77,7 +79,6 @@ with DAG(
                 );
                 CREATE TABLE IF NOT EXISTS stage.podcast_data(
                 id SERIAL PRIMARY KEY,
-                api_transform TEXT,
                 link TEXT,
                 title TEXT,
                 pubDate TEXT,
@@ -91,19 +92,19 @@ with DAG(
             )
     data=get_episode()
     Load_Date=PostgresOperator(
-            task_id="Load_Data",
+            task_id="LOAD_DATA_IN_LAND_TABLE",
             sql="""
                 TRUNCATE TABLE land.podcast_data;
                 INSERT INTO land.podcast_data (podcast_data,created_at,dag_id,task_id)
                 VALUES (%(data_)s,%(date)s,%(dag_id)s,%(task_id)s);
                 """,
-                parameters={'data_':str(data),'date':str(datetime.now()),'dag_id':dag_id ,'task_id':task_id}
+                parameters={'data_':str(data),'date':str(datetime.now()),'dag_id':DAG_ID ,'task_id':LANDING_TASK_ID}
 
     )
 
-    get_data=PythonOperator(task_id='get_data',python_callable=retrieve_data,provide_context=True)
+    get_data=PythonOperator(task_id='READ_DATA_FROM_LAND_TABLE',python_callable=retrieve_data,provide_context=True)
 
-    transform_data=PythonOperator(task_id='transform_data',python_callable=transform)                        
+    transform_data=PythonOperator(task_id='TRANSFORM_DATA',python_callable=transform)                        
 
     Start>>Create_Table>>Load_Date>>get_data>>transform_data>>End
 
