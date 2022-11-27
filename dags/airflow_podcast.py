@@ -15,7 +15,6 @@ POSTGRES_CONN_ID='postgres_default'
 SEARCH_='https'
 DAG_ID = "PODCAST_SUMMARY"
 LANDING_TASK_ID='LOAD_DATA'
-TRANSFORM_TASK_ID='TRANSFORM_DATA'
 
 def get_episode():
             data=requests.get(PODCAST_URL)
@@ -91,7 +90,7 @@ with DAG(
             """
             )
     data=get_episode()
-    Load_Date=PostgresOperator(
+    Load_Data=PostgresOperator(
             task_id="LOAD_DATA_IN_LAND_TABLE",
             sql="""
                 TRUNCATE TABLE land.podcast_data;
@@ -104,9 +103,9 @@ with DAG(
 
     Read_Data=PythonOperator(task_id='READ_DATA_FROM_LAND_TABLE',python_callable=retrieve_data,provide_context=True)
 
-    Transform_Data=PythonOperator(task_id='TRANSFORM_DATA',python_callable=transform)                        
+    Transform_Data=PythonOperator(task_id='TRANFORM_DATA_AND_LOAD_INTO_STAGE',python_callable=transform)                        
 
-    Start>>Create_Table>>Load_Date>>Read_Data>>Transform_Data>>End
+    Start>>Create_Table>>Load_Data>>Read_Data>>Transform_Data>>End
 
 
 
