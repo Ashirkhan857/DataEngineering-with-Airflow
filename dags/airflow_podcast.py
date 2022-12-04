@@ -63,8 +63,8 @@ with DAG(
     ) as dag:
 
 
-    Start=EmptyOperator(task_id='START')
-    End=EmptyOperator(task_id='END')
+    Start_DAG=EmptyOperator(task_id='START')
+    End_DAG=EmptyOperator(task_id='END')
 
     Create_Table=PostgresOperator(
             task_id="CREATE_TABLE",
@@ -105,7 +105,7 @@ with DAG(
 
     Transform_Data=PythonOperator(task_id='TRANFORM_DATA_AND_LOAD_INTO_STAGE',python_callable=transform)                        
 
-    Start>>Create_Table>>Load_Data>>Read_Data>>Transform_Data>>End
+    Start_DAG>>Create_Table>>Load_Data>>Read_Data>>Transform_Data>>End_DAG
 
 
 
